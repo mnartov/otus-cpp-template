@@ -1,18 +1,14 @@
-cmake_minimum_required(VERSION 3.2)
+add_executable(unit_tests
+    testMain.cpp
+)
 
-set(projectUnitTests ${PROJECT_NAME}Tests)
-add_executable(projectUnitTests testMain.cpp)
+target_link_libraries(unit_tests
+    PRIVATE
+        gtest_main
+        lib
+)
 
-target_include_directories(projectUnitTests PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(projectUnitTests projectLib)
-
-target_include_directories(projectUnitTests PRIVATE ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-target_link_libraries(projectUnitTests gtest gtest_main)
-
-add_test(NAME projectUnitTests COMMAND projectUnitTests)
-
-install(TARGETS projectUnitTests
-        DESTINATION testFolder)
+add_test(NAME unit_tests COMMAND unit_tests)
 
 
 
