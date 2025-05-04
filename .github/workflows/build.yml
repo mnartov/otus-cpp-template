@@ -1,0 +1,55 @@
+name: 'OTUS C++ CI'
+
+on:
+  push:
+    branches:
+      - "release/**"
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Set variables
+        id: variables
+        run: |
+          branch_cut_name=$(echo ${{ github.ref_name }} | rev | cut -d '/' -f 1 | rev)
+          echo "Project name: $branch_cut_name"
+          echo "branch_cut_name=$branch_cut_name" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential
+
+      - name: Configure and Build
+        run: |
+          cmake . \
+            -DPROJECT_NAME=${{ steps.variables.outputs.branch_cut_name }} \
+            -DPATCH_VERSION=${{ github.run_number }} \
+            -DBUILD_GTEST=ON \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --target all
+
+      - name: Run Tests
+        run: ctest --output-on-failure
+      
+      - name: Build .deb package
+        run: cmake --build . --target package
+      
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v0.0.${{ github.run_number }}
+          name: Release v0.0.${{ github.run_number }}
+          draft: false
+          prerelease: false
+          files: |
+            ./${{ steps.variables.outputs.branch_cut_name }}-0.0.${{ github.run_number }}-Linux.deb

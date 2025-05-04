@@ -1,28 +1,45 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.20)
 
-set(PROJECT_NAME "default" CACHE INTERNAL "Project name")
-set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
-set(PROJECT_VESRION 0.0.${PATCH_VERSION})
+set(PATCH_VERSION "1")
+set(PROJECT_VERSION 0.0.${PATCH_VERSION})
 
-set(binFolder, "${CMAKE_SOURCE_DIR}/bin")
-set(testFolder, "${CMAKE_SOURCE_DIR}/test")
+if(DEFINED PROJECT_VERSION_PATCH)
+    set(PROJECT_VERSION 0.0.${PROJECT_VERSION_PATCH})
+endif()
 
-project(${PROJECT_NAME} VERSION ${PROJECT_VESRION})
-option(GTEST "Unit test via GTest" ON)
+project(master VERSION ${PROJECT_VERSION})
 
-configure_file(version.h.in version.h)
+include_directories(
+    ${CMAKE_SOURCE_DIR}/include
+)
 
+configure_file(
+    ${CMAKE_SOURCE_DIR}/version.h.in
+    ${CMAKE_SOURCE_DIR}/include/version.h
+    @ONLY
+)
+
+option(USE_CPP23 "Enable C++23" OFF)
+option(BUILD_GTEST "Build GTests" OFF)
+
+set(CMAKE_CXX_STANDARD 20)
+if(USE_CPP23)
+    set(CMAKE_CXX_STANDARD 23)
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+add_subdirectory(include)
 add_subdirectory(src)
 
-if (GTEST) 
+if(BUILD_GTEST)
     add_subdirectory(googletest)
     enable_testing()
-    add_subdirectory(ut) 
+    add_subdirectory(ut)
 endif()
 
 set(CPACK_GENERATOR DEB)
-set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
+set(CPACK_PROJECT_VERSION_MAJOR 0)
+set(CPACK_PROJECT_VERSION_MINOR 0)
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 set(CPACK_PACKAGE_CONTACT m.nartov24@yandex.ru)
 include(CPack)
